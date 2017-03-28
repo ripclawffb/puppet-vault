@@ -113,7 +113,7 @@ By default, with no parameters the module will configure vault with some sensibl
 
 ## Resource Types
 
-`vault_secret`
+`**vault_secret**`
 
 This puppet type creates, updates or deletes secrets from Hashicorp Vault
 server.
