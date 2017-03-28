@@ -111,7 +111,87 @@ By default, with no parameters the module will configure vault with some sensibl
 
 * `extra_config`: A hash containing extra configuration, intended for newly released configuration not yet supported by the module. This hash will get merged with other configuration attributes into the JSON config file.
 
+## Resource Types
+
+`vault_secret`
+
+This puppet type creates, updates or deletes secrets from Hashicorp Vault
+server.
+
+When using this type, the following parameters are available:
+
+`ensure`: ensures whether the secret is present.
+          valid options: 'present', 'absent', default: 'present'
+
+`vault_addr`: the url or the vault server
+              valid options: string, default: undefined
+
+`vault_auth`: a hash that includes type of authentication and corresponding
+              parameters that has access to read/delete secrets in vault
+              (see authentication section below)
+              valid options: hash, default: undefined
+
+`secret_fqdn`: fully qualified secret name which includes mount point
+              valid options: string, default: undefined
+
+`secret_value`: a hash that includes the key value pair that you want to
+                insert into vault. you can include multiple key value pairs.
+                valid options: hash, default: undefined
+
+`update`: determines if secret in vault is updated if passed doesn't match
+          what is in vault.
+          valid options: true, false, default: true
+
+
+Authentication:
+
+  This function currently supports two types of authentication:
+
+  Token:
+
+    To authenticate via token, just pass in a hash with the type of 'token'
+    and the actual token.
+
+```
+    { 'type' => 'token',
+      'token => 'c38e2dca-9a61-6ea1-0d2d-397a5d2e2c63' }
+```
+
+  Approle:
+
+    To authenticate via approle, you will need to enable the approle backend
+    by running 'vault auth-enable approle'. Once enabled, you can pass in a
+    hash with the type of 'approle', role id and secret id.
+
+```
+    { 'type'      => 'approle',
+      'role_id'   => '2fab2f1c-afc2-2138-81de-asf11d9f3af0',
+      'secret_id' => '2df95cb9-d22c-3816-74db-e6458604384a' }
+```
+
+## Functions
+
+`vault_secret`
+
+This function reads secrets from Hashicorp's Vault.
+
+When reading a secret, the following arguments must be provided:
+
+`vault_addr`: the url or the vault server
+            valid options: string, default: undefined
+
+`vault_auth`: a hash that includes type of authentication and corresponding
+             parameters that has access to read/delete secrets in vault
+             (see authentication section above)
+             valid options: hash, default: undefined
+
+`secret_fqdn`: fully qualified secret name which includes mount point
+               valid options: string, default: undefined
+
+
 ## Examples
+
+### Class
 
 ```puppet
 class { '::vault':
@@ -145,6 +225,8 @@ vault::listener:
 vault::default_lease_ttl: 720h
 
 ```
+
+### Resource Types
 
 ## mlock
 
