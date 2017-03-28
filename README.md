@@ -143,25 +143,25 @@ When using this type, the following parameters are available:
           valid options: true, false, default: true
 
 
-Authentication:
+#### Authentication:
 
   This function currently supports two types of authentication:
 
-  Token:
+##### Token:
 
-    To authenticate via token, just pass in a hash with the type of 'token'
-    and the actual token.
+To authenticate via token, just pass in a hash with the type of 'token'
+and the actual token.
 
 ```
     { 'type' => 'token',
       'token => 'c38e2dca-9a61-6ea1-0d2d-397a5d2e2c63' }
 ```
 
-  Approle:
+##### Approle:
 
-    To authenticate via approle, you will need to enable the approle backend
-    by running 'vault auth-enable approle'. Once enabled, you can pass in a
-    hash with the type of 'approle', role id and secret id.
+To authenticate via approle, you will need to enable the approle backend
+by running 'vault auth-enable approle'. Once enabled, you can pass in a
+hash with the type of 'approle', role id and secret id.
 
 ```
     { 'type'      => 'approle',
