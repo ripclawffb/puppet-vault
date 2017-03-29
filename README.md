@@ -16,7 +16,6 @@ This module is currently only tested on:
 * CentOS/RedHat 7
 
 ## Usage
-
 ```puppet
 include vault
 ```
@@ -111,7 +110,70 @@ By default, with no parameters the module will configure vault with some sensibl
 
 * `extra_config`: A hash containing extra configuration, intended for newly released configuration not yet supported by the module. This hash will get merged with other configuration attributes into the JSON config file.
 
+## Resource Types
+
+#### `vault_secret`
+
+This puppet type creates, updates or deletes secrets from Hashicorp Vault server.
+
+When using this type, the following parameters are available:
+
+`title`: The Fully qualified secret name which includes mount point. Valid options: String
+
+`ensure`: Ensures whether the secret is present. Valid options: 'present', 'absent', default: 'present'
+
+`url`: The URL of the vault server. Valid options: String, default: undefined
+
+`auth`: a hash that includes type of authentication and corresponding parameters that has access to read/delete secrets in vault (see authentication section below). Valid options: Hash, default: undefined
+
+`secret`: a hash that includes the key value pair that you want to insert into vault. you can include multiple key value pairs. Valid options: Hash, default: undefined
+
+`update`: Determines if secret in vault is updated if passed doesn't match what is in vault. Valid options: true, false, default: true
+
+
+## Functions
+
+#### `vault_secret`
+
+This function reads secrets from Hashicorp's Vault.
+
+To use the function, call it with the parameters listed below:
+```              
+vault_secret(url, auth, secret_fqdn)
+```
+
+`url`: The URL of the vault server. Valid options: String, default: undefined
+
+`auth`: A hash that includes type of authentication and corresponding parameters that has access to read/delete secrets in vault (see authentication section below). Valid options: Hash, default: undefined
+
+`secret_fqdn`: The fully qualified secret name which includes mount point. Valid options: String, default: undefined
+
+### Authentication:
+
+This type and function currently supports two types of authentication:
+
+#### Token:
+
+To authenticate via token, just pass in a hash with the type of 'token' and the actual token.
+
+```
+    { 'type' => 'token',
+      'token => 'c38e2dca-9a61-6ea1-0d2d-397a5d2e2c63' }
+```
+
+#### Approle:
+
+To authenticate via approle, you will need to enable the approle backend by running 'vault auth-enable approle'. Once enabled, you can pass in a hash with the type of 'approle', role id and secret id.
+
+```
+    { 'type'      => 'approle',
+      'role_id'   => '2fab2f1c-afc2-2138-81de-asf11d9f3af0',
+      'secret_id' => '2df95cb9-d22c-3816-74db-e6458604384a' }
+```
+
 ## Examples
+
+### Class
 
 ```puppet
 class { '::vault':
@@ -145,6 +207,66 @@ vault::listener:
 vault::default_lease_ttl: 720h
 
 ```
+
+### Resource Types
+
+Example 1:
+```
+vault_secret { 'secret/foo':
+  ensure => present,
+  url    => 'http://127.0.0.1:8200',
+  auth   => {
+    type  => 'token',
+    token => 'c38e2dca-9a61-6ea1-0d2d-397a5d2e2c63'
+  },
+  secret => {
+    value1 => 'bar1',
+    value2 => 'bar2'
+  },
+}
+```
+In this example, a secret called foo will be created under the mount point secret/ with two values using the token authentication method.
+
+Example 2:
+```
+vault_secret { 'secret/foo':
+  ensure => present,
+  url    => 'http://127.0.0.1:8200',
+  auth   => {
+    type      => 'approle',
+    role_id   => '2fab2f1c-afc2-2138-81de-asf11d9f3af0',
+    secret_id => '2df95cb9-d22c-3816-74db-e6458604384a'
+  },
+  secret => {
+    value => fqdn_rand_string(10),
+  },
+  update => false,
+}
+```
+In this example, a secret called foo with a randomly generated value will be created under the mount point secret/ using the approle authentication method. Note, the update parameter is set to false, so if the value ever changes, it will not update the value in vault. This is added as a protection mechanism to ensure secrets are not accidently overwritten.
+
+Example 3:
+```
+vault_secret { 'secret/foo':
+  ensure => absent,
+  url    => 'http://127.0.0.1:8200',
+  auth   => {
+    type      => 'approle',
+    role_id   => '2fab2f1c-afc2-2138-81de-asf11d9f3af0',
+    secret_id => '2df95cb9-d22c-3816-74db-e6458604384a'
+  },
+}
+```
+In this example, the secret foo is deleted from the mount point secret/.
+
+### Functions
+```
+$secret = vault_secret('read', 'https://vault.example.local:8200',
+                       '{ 'type' => 'token',
+                          'token => 'c38e2dca-9a61-6ea1-0d2d-397a5d2e2c63' }',
+                       'secret/foo')
+```
+In this example, the secret foo is retrieved from the secret/ mount point.
 
 ## mlock
 
